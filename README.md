@@ -64,7 +64,7 @@ All transforms above retrieved just the transformed object. Here's an example fo
 ```javascript
 const name = { x: 18, y: 85 }[spell].setY(99).string()(true)
 
-const original = { x: 18, y: 85 }
+const original = { x: 18, y: 81 }
 const [modified, string] = original[spell].setX(19).setY(97).string()([])
 ```
 
