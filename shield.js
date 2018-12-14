@@ -6,7 +6,7 @@ const fakeShield = (original) => ({
 })
 
 const shield = (original) => {
-  if (typeof original !== 'object') return fakeShield(original)
+  if (original == null || typeof original !== 'object') return fakeShield(original)
 
   const changes = new Map()
 
