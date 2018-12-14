@@ -1,6 +1,7 @@
 const shield = require('./shield')
 
 const blacklist = new Set(['inspect', 'constructor'])
+const mutators = new Map()
 
 const veraverto = (params, options = {}) => {
   if (typeof options === 'string') options = { name: options }
@@ -11,7 +12,7 @@ const veraverto = (params, options = {}) => {
   const map = new Map()
   Object.keys(params).map(key => map.set(key, params[key]))
 
-  const bind = (object, result = null) => {
+  const bind = (object, mutate = false, result = null) => {
     return new Proxy((getResult) => {
       if (!getResult) return object
       if (getResult === true) return result
@@ -26,26 +27,39 @@ const veraverto = (params, options = {}) => {
         }
 
         return (...args) => {
-          const { shielded, unshield } = shield(object)
+          const { shielded, unshield } = mutate ? shield.fake(object) : shield(object)
 
           const result = params[prop].call(shielded, ...args)
-          return bind(unshield(), shield.unshield(result)) // TODO the result may need unshielding too
+          return bind(unshield(), mutate, mutate ? result : shield.unshield(result))
         }
       }
     })
   }
 
-  if (options.func) return bind
+  if (options.func) {
+    const func = (object) => bind(object)
+    func.mut = (object) => bind(object, true)
+    mutators.set(func, func.mut)
+    return func
+  }
 
-  Object.defineProperty(Object.prototype, spell, { // eslint-disable-line no-extend-native
-    get: function () {
-      return bind(this)
-    },
-    enumerable: false,
-    configurable: false
+  Object.defineProperties(Object.prototype, { // eslint-disable-line no-extend-native
+    [spell]: {
+      get: function () {
+        return bind(this)
+      },
+      enumerable: false,
+      configurable: false
+    }
   })
+
+  mutators.set(spell, (object) => bind(object, true))
 
   return spell
 }
 
 module.exports = veraverto
+module.exports.mutator = (spell, object) => {
+  if (!mutators.has(spell)) throw new Error('Spell not found')
+  return mutators.get(spell)(object)
+}

@@ -1,17 +1,19 @@
 const shieldedObjects = new WeakMap()
 
+const fakeShield = (original) => ({
+  shielded: original,
+  unshield: () => original
+})
+
 const shield = (original) => {
-  if (typeof original !== 'object') {
-    return {
-      shielded: original,
-      unshield: () => original
-    }
-  }
+  if (typeof original !== 'object') return fakeShield(original)
 
   const changes = new Map()
 
   const shielded = new Proxy(original, {
     get: (target, prop) => {
+      if (prop.name === 'shield') return true
+
       if (changes.has(prop)) {
         const change = changes.get(prop)
         switch (change.op) {
@@ -57,7 +59,7 @@ const shield = (original) => {
         }
       }
 
-      return [...changed.values()]
+      return [...changed.values(), 'shield']
     },
     getOwnPropertyDescriptor: (target, prop) => {
       if (prop === 'constructor') return undefined
@@ -120,6 +122,8 @@ const shield = (original) => {
 }
 
 module.exports = shield
+module.exports.fake = fakeShield
+module.exports.has = (object) => shieldedObjects.has(object)
 module.exports.unshield = (object) => {
   if (!shieldedObjects.has(object)) return object
   return shieldedObjects.get(object)()

@@ -15,7 +15,10 @@ describe('veraverto', function () {
       setZ: function (z) { this.z = z },
       removeZ: function () { delete this.z },
       string: function () { return `${this.x}:${this.y}` },
-      setOriginX: function (x) { this.origin.x = x }
+      setOriginX: function (x) { this.origin.x = x },
+      mutant: function (x, y) {
+        veraverto.mutator(spell, this).setX(x).setY(y)()
+      }
     })
 
     expect(spell).to.be.a('symbol')
@@ -57,6 +60,28 @@ describe('veraverto', function () {
 
     // no deep cloning either, this is strict equal, it's the same object
     expect(base.origin).to.equal(p1.origin)
+  })
+
+  it('except if you use the mutator', function () {
+    const base = { x: 4, y: 5, origin: { x: 3 } }
+
+    const p1 = veraverto.mutator(spell, base).setX(12).setY(43)()
+
+    expect(base).to.deep.equal({ x: 12, y: 43, origin: { x: 3 } })
+    expect(p1).to.deep.equal({ x: 12, y: 43, origin: { x: 3 } })
+
+    expect(base).to.equal(p1)
+  })
+
+  it('can use the mutator within an immutable transform', function () {
+    const base = { x: 4, y: 5, origin: { x: 3 } }
+
+    const p1 = base[spell].mutant(12, 43)()
+    const p2 = base[spell].setX(5).setOriginX(42)()
+
+    expect(base).to.deep.equal({ x: 4, y: 5, origin: { x: 3 } })
+    expect(p1).to.deep.equal({ x: 12, y: 43, origin: { x: 3 } })
+    expect(p2).to.deep.equal({ x: 5, y: 5, origin: { x: 42 } })
   })
 
   it('works as a function too', function () {

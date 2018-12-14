@@ -113,6 +113,50 @@ const noMagic = binder({ x: 3, y: 5 }).setX(4)()
 
 This way you can avoid extending `Object.prototype`. The spell is designed to avoid any problem with it by using a non-enumerable getter on the prototype (in fact it doesn't show up in any function like `Object.getOwnPropertySymbols()` ran against any object), but in case you run into edge cases where it causes problems, function mode can be useful.
 
+## The Mutator
+
+By default, Veraverto transforms do not mutate the transformed object. However, in some cases this might be necessary, which is where the _mutator_ steps in. The mutator functions just like any other transform, but it mutates the target object. It has a different init phase:
+
+```javascript
+const original = { x: 3, y: 5 }
+const mutated = veraverto.mutator(spell, original).setX(4)()
+
+console.log(original) // { x: 4, y: 5 }
+```
+
+`veraverto.mutator()` works for the function style too, but in that case you also have an alternative:
+
+```javascript
+const mutated = binder.mut(original).setX(4)()
+```
+
+The bigger question is why would you do that? Doesn't it just nullify the advantages of Veraverto? Well, the answer is yes, kind of. The real point of the mutator is using it within an immutable transform. For example:
+
+```javascript
+const spell = veraverto({
+  setX: function (x) {
+    this.x = x
+  },
+  setY: function (y) {
+    this.y = y
+  },
+  setBoth: function (x, y) {
+    veraverto.mutator(spell, this).setX(x).setY(y)()
+  }
+})
+```
+
+This way, `setBoth()` is still an immutable mutation on the outside, but it can reuse other transforms.
+
+Function reference:
+
+### `veraverto.mutator(spell, object)`:
+
+Creates a mutator transform for the object. The parameters are
+
+ - `spell`: either a spell or a binder specifying the set of transforms to use
+ - `object`: the object to transform
+
 ## Limitations
 
 Currently, Veraverto doesn't support async transforms and doesn't simulate `Object.defineProperty()` on the target object during a transform. These features can be included in a simple upgrade seamlessly if you update your own Veraverto dependency.
