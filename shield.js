@@ -12,7 +12,7 @@ const fakeShield = (original) => ({
 })
 
 const arrayShield = (original) => {
-  const shielded = original.map(object => shield(object))
+  const shielded = original.map(object => shield(object).shielded)
   const unshield = () => shielded.map(object => unShield(object))
 
   return { shielded, unshield }

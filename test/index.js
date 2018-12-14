@@ -22,6 +22,10 @@ describe('veraverto', function () {
       setVec: function () {
         this.vec2[0] = this.x
         this.vec2[1] = this.y
+      },
+      fromVec: function () {
+        this.x = this.vec2[0]
+        this.y = this.vec2[1]
       }
     })
 
@@ -54,6 +58,7 @@ describe('veraverto', function () {
 
   it('can handle arrays', function () {
     expect({ x: 4, y: 3, vec2: [] }[spell].setVec()()).to.deep.equal({ x: 4, y: 3, vec2: [4, 3] })
+    expect({ vec2: [4, 3] }[spell].fromVec()()).to.deep.equal({ x: 4, y: 3, vec2: [4, 3] })
   })
 
   it("doesn't mutate objects", function () {
