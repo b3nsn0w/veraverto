@@ -18,6 +18,10 @@ describe('veraverto', function () {
       setOriginX: function (x) { this.origin.x = x },
       mutant: function (x, y) {
         spell.mut(this).setX(x).setY(y)()
+      },
+      setVec: function () {
+        this.vec2[0] = this.x
+        this.vec2[1] = this.y
       }
     })
 
@@ -48,18 +52,27 @@ describe('veraverto', function () {
     expect({}[spell](true)).to.equal(null)
   })
 
+  it('can handle arrays', function () {
+    expect({ x: 4, y: 3, vec2: [] }[spell].setVec()()).to.deep.equal({ x: 4, y: 3, vec2: [4, 3] })
+  })
+
   it("doesn't mutate objects", function () {
-    const base = { x: 4, y: 5, origin: { x: 3 } }
+    const base = { x: 4, y: 5, origin: { x: 3 }, vec2: [] }
 
     const p1 = base[spell].setX(12).setY(43)()
     const p2 = base[spell].setX(5).setOriginX(42)()
+    const p3 = base[spell].setVec()()
 
-    expect(base).to.deep.equal({ x: 4, y: 5, origin: { x: 3 } })
-    expect(p1).to.deep.equal({ x: 12, y: 43, origin: { x: 3 } })
-    expect(p2).to.deep.equal({ x: 5, y: 5, origin: { x: 42 } })
+    expect(base).to.deep.equal({ x: 4, y: 5, origin: { x: 3 }, vec2: [] })
+    expect(p1).to.deep.equal({ x: 12, y: 43, origin: { x: 3 }, vec2: [] })
+    expect(p2).to.deep.equal({ x: 5, y: 5, origin: { x: 42 }, vec2: [] })
+    expect(p3).to.deep.equal({ x: 4, y: 5, origin: { x: 3 }, vec2: [4, 5] })
 
     // no deep cloning either, this is strict equal, it's the same object
     expect(base.origin).to.equal(p1.origin)
+    expect(base.origin).to.equal(p3.origin)
+    expect(base.vec2).to.equal(p1.vec2)
+    expect(base.vec2).to.equal(p2.vec2)
   })
 
   it('except if you use the mutator', function () {

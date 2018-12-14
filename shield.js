@@ -1,12 +1,26 @@
 const shieldedObjects = new WeakMap()
 
+const hasShield = (object) => shieldedObjects.has(object)
+const unShield = (object) => {
+  if (!shieldedObjects.has(object)) return object
+  return shieldedObjects.get(object)()
+}
+
 const fakeShield = (original) => ({
   shielded: original,
   unshield: () => original
 })
 
+const arrayShield = (original) => {
+  const shielded = original.map(object => shield(object))
+  const unshield = () => shielded.map(object => unShield(object))
+
+  return { shielded, unshield }
+}
+
 const shield = (original) => {
   if (original == null || typeof original !== 'object') return fakeShield(original)
+  if (Array.isArray(original)) return arrayShield(original)
 
   const changes = new Map()
 
@@ -123,8 +137,5 @@ const shield = (original) => {
 
 module.exports = shield
 module.exports.fake = fakeShield
-module.exports.has = (object) => shieldedObjects.has(object)
-module.exports.unshield = (object) => {
-  if (!shieldedObjects.has(object)) return object
-  return shieldedObjects.get(object)()
-}
+module.exports.has = hasShield
+module.exports.unshield = unShield
