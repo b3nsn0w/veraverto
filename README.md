@@ -115,22 +115,16 @@ This way you can avoid extending `Object.prototype`. The spell is designed to av
 
 ## The Mutator
 
-By default, Veraverto transforms do not mutate the transformed object. However, in some cases this might be necessary, which is where the _mutator_ steps in. The mutator functions just like any other transform, but it mutates the target object. It has a different init phase:
+By default, Veraverto transforms do not mutate the transformed object. However, in some cases this might be necessary, which is where the _mutator_ steps in. The mutator functions just like any other transform, but it mutates the target object. It has a different init phase, and it always uses function style:
 
 ```javascript
 const original = { x: 3, y: 5 }
-const mutated = veraverto.mutator(spell, original).setX(4)()
+const mutated = spell.mut(original).setX(4) // you don't even need the retrieval phase
 
 console.log(original) // { x: 4, y: 5 }
 ```
 
-`veraverto.mutator()` works for the function style too, but in that case you also have an alternative:
-
-```javascript
-const mutated = binder.mut(original).setX(4)()
-```
-
-The bigger question is why would you do that? Doesn't it just nullify the advantages of Veraverto? Well, the answer is yes, kind of. The real point of the mutator is using it within an immutable transform. For example:
+The only question is why would you do that? Doesn't it just nullify the advantages of Veraverto? Well, the answer is yes, kind of. The real point of the mutator is using it within an immutable transform. For example:
 
 ```javascript
 const spell = veraverto({
@@ -141,21 +135,14 @@ const spell = veraverto({
     this.y = y
   },
   setBoth: function (x, y) {
-    veraverto.mutator(spell, this).setX(x).setY(y)()
+    spell.mut(this).setX(x).setY(y)()
   }
 })
 ```
 
 This way, `setBoth()` is still an immutable mutation on the outside, but it can reuse other transforms.
 
-Function reference:
-
-### `veraverto.mutator(spell, object)`:
-
-Creates a mutator transform for the object. The parameters are
-
- - `spell`: either a spell or a binder specifying the set of transforms to use
- - `object`: the object to transform
+The mutator works on the function style the exact same way, `binder.mut()` and `spell.mut()` are the same.
 
 ## Limitations
 

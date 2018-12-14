@@ -17,7 +17,7 @@ describe('veraverto', function () {
       string: function () { return `${this.x}:${this.y}` },
       setOriginX: function (x) { this.origin.x = x },
       mutant: function (x, y) {
-        veraverto.mutator(spell, this).setX(x).setY(y)()
+        spell.mut(this).setX(x).setY(y)()
       }
     })
 
@@ -65,12 +65,17 @@ describe('veraverto', function () {
   it('except if you use the mutator', function () {
     const base = { x: 4, y: 5, origin: { x: 3 } }
 
-    const p1 = veraverto.mutator(spell, base).setX(12).setY(43)()
+    const p1 = spell.mut(base).setX(12).setY(43)()
 
     expect(base).to.deep.equal({ x: 12, y: 43, origin: { x: 3 } })
     expect(p1).to.deep.equal({ x: 12, y: 43, origin: { x: 3 } })
 
     expect(base).to.equal(p1)
+
+    const p2 = { x: 9, y: 2 }
+    spell.mut(p2).setX(1)
+
+    expect(p2).to.deep.equal({ x: 1, y: 2 })
   })
 
   it('can use the mutator within an immutable transform', function () {

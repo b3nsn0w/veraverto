@@ -1,13 +1,13 @@
 const shield = require('./shield')
 
 const blacklist = new Set(['inspect', 'constructor'])
-const mutators = new Map()
+// const mutators = new Map()
 
 const veraverto = (params, options = {}) => {
   if (typeof options === 'string') options = { name: options }
   if (options.name == null) options.name = 'veraverto'
 
-  const spell = Symbol(options.name)
+  const spell = Object(Symbol(options.name))
 
   const map = new Map()
   Object.keys(params).map(key => map.set(key, params[key]))
@@ -39,7 +39,6 @@ const veraverto = (params, options = {}) => {
   if (options.func) {
     const func = (object) => bind(object)
     func.mut = (object) => bind(object, true)
-    mutators.set(func, func.mut)
     return func
   }
 
@@ -53,13 +52,13 @@ const veraverto = (params, options = {}) => {
     }
   })
 
-  mutators.set(spell, (object) => bind(object, true))
+  spell.mut = (object) => bind(object, true)
 
   return spell
 }
 
 module.exports = veraverto
-module.exports.mutator = (spell, object) => {
-  if (!mutators.has(spell)) throw new Error('Spell not found')
-  return mutators.get(spell)(object)
-}
+// module.exports.mutator = (spell, object) => {
+//   if (!mutators.has(spell)) throw new Error('Spell not found')
+//   return mutators.get(spell)(object)
+// }
